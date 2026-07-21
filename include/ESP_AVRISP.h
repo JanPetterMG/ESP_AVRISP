@@ -19,9 +19,6 @@ Original version:
 #include <WiFi.h>
 #endif
 
-// SPI clock frequency in Hz
-#define AVRISP_SPI_FREQ   300e3
-
 // programmer states
 typedef enum {
     AVRISP_STATE_IDLE = 0,    // no active TCP session
@@ -49,7 +46,7 @@ typedef struct {
 
 class ESP_AVRISP {
 public:
-    ESP_AVRISP(uint32_t spi_freq=AVRISP_SPI_FREQ, bool reset_state=false, bool reset_activehigh=false);
+    ESP_AVRISP(uint32_t spi_freq=300000, bool reset_state=false, bool reset_activehigh=false);
 
     void begin();
 
