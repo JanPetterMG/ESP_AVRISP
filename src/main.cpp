@@ -1,3 +1,4 @@
+#include "secrets.h"
 #include <SPI.h>
 #include <ESP_AVRISP.h>
 #ifdef ESP8266
@@ -8,9 +9,6 @@
 #include <ESPmDNS.h>
 #endif
 
-const char* host = "esp-avrisp";
-const char* ssid = "**********";
-const char* pass = "**********";
 const uint16_t port = 328;
 const uint8_t reset_pin = 5;
 
@@ -22,10 +20,10 @@ void setup() {
     Serial.println("Arduino AVR-ISP over TCP");
     avrprog.setReset(false); // let the AVR run
 
-    WiFi.begin(ssid, pass);
+    WiFi.begin(WIFI_SSID, WIFI_KEY);
     while (WiFi.waitForConnectResult() != WL_CONNECTED);
 
-    MDNS.begin(host);
+    MDNS.begin(HOSTNAME);
     MDNS.addService("avrisp", "tcp", port);
 
     IPAddress local_ip = WiFi.localIP();
