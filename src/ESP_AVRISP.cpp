@@ -437,7 +437,7 @@ void ESP_AVRISP::read_signature() {
 
 // It seems ArduinoISP is based on the original STK500 (not v2)
 // but implements only a subset of the commands.
-int ESP_AVRISP::avrisp() {
+void ESP_AVRISP::avrisp() {
     uint8_t data, low, high;
     uint8_t ch = getch();
     // AVRISP_DEBUG("CMD 0x%02x", ch);
