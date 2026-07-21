@@ -19,9 +19,6 @@ Original version:
 #include <WiFi.h>
 #endif
 
-// uncomment if you use an n-mos to level-shift the reset line
-// #define AVRISP_ACTIVE_HIGH_RESET
-
 // SPI clock frequency in Hz
 #define AVRISP_SPI_FREQ   300e3
 
@@ -60,7 +57,6 @@ public:
     void setSpiFrequency(uint32_t);
 
     // control the state of the RESET pin of the target
-    // see AVRISP_ACTIVE_HIGH_RESET
     void setReset(bool);
 
     // check for pending clients if IDLE, check for disconnect otherwise
