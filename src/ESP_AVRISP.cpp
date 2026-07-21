@@ -75,7 +75,7 @@ AVRISPState_t ESP_AVRISP::update() {
     switch (_state) {
         case AVRISP_STATE_IDLE: {
             if (_server.hasClient()) {
-                _client = _server.available();
+                _client = _server.accept();
                 _client.setNoDelay(true);
                 ip4_addr_t lip;
                 lip.addr = _client.remoteIP();
@@ -127,7 +127,7 @@ AVRISPState_t ESP_AVRISP::serve() {
 }
 
 inline void ESP_AVRISP::_reject_incoming(void) {
-    while (_server.hasClient()) _server.available().stop();
+    while (_server.hasClient()) _server.accept().stop();
 }
 
 uint8_t ESP_AVRISP::getch() {
