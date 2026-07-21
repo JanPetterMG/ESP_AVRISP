@@ -11,6 +11,7 @@ Original version:
 */
 
 
+#include "secrets.h"
 #include <Arduino.h>
 #include <SPI.h>
 #include "ESP_AVRISP.h"
@@ -46,11 +47,11 @@ extern "C" {
 
 #define beget16(addr) (*addr * 256 + *(addr+1))
 
-ESP_AVRISP::ESP_AVRISP(uint16_t port, uint8_t reset_pin, uint32_t spi_freq, bool reset_state, bool reset_activehigh):
-    _reset_pin(reset_pin), _reset_state(reset_state), _spi_freq(spi_freq), _reset_activehigh(reset_activehigh),
-    _server(WiFiServer(port)), _state(AVRISP_STATE_IDLE)
+ESP_AVRISP::ESP_AVRISP(uint32_t spi_freq, bool reset_state, bool reset_activehigh):
+    _reset_state(reset_state), _spi_freq(spi_freq), _reset_activehigh(reset_activehigh),
+    _server(WiFiServer(TCP_PORT)), _state(AVRISP_STATE_IDLE)
 {
-    pinMode(_reset_pin, OUTPUT);
+    pinMode(PIN_RESET, OUTPUT);
     setReset(_reset_state);
 }
 
@@ -67,7 +68,7 @@ void ESP_AVRISP::setSpiFrequency(uint32_t freq) {
 
 void ESP_AVRISP::setReset(bool rst) {
     _reset_state = rst;
-    digitalWrite(_reset_pin, _resetLevel(_reset_state));
+    digitalWrite(PIN_RESET, _resetLevel(_reset_state));
 }
 
 AVRISPState_t ESP_AVRISP::update() {
@@ -219,19 +220,19 @@ void ESP_AVRISP::set_parameters() {
 }
 
 void ESP_AVRISP::start_pmode() {
-#ifdef SPI_PINS
-    SPI.begin(SPI_PINS);
-#else
+#ifdef ESP8266
     SPI.begin();
-#endif
+#else
+    SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, GPIO_NUM_NC);
+#endif // ESP8266
     SPI.setFrequency(_spi_freq);
     SPI.setHwCs(false);
 
     // try to sync the bus
     SPI.transfer(0x00);
-    digitalWrite(_reset_pin, _resetLevel(false));
+    digitalWrite(PIN_RESET, _resetLevel(false));
     delayMicroseconds(50);
-    digitalWrite(_reset_pin, _resetLevel(true));
+    digitalWrite(PIN_RESET, _resetLevel(true));
     delay(30);
 
     spi_transaction(0xAC, 0x53, 0x00, 0x00);

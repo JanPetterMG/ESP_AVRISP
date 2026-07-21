@@ -9,10 +9,7 @@
 #include <ESPmDNS.h>
 #endif
 
-const uint16_t port = 328;
-const uint8_t reset_pin = 5;
-
-ESP_AVRISP avrprog(port, reset_pin);
+ESP_AVRISP avrprog;
 
 void setup() {
     Serial.begin(115200);
@@ -24,7 +21,7 @@ void setup() {
     while (WiFi.waitForConnectResult() != WL_CONNECTED);
 
     MDNS.begin(HOSTNAME);
-    MDNS.addService("avrisp", "tcp", port);
+    MDNS.addService("avrisp", "tcp", TCP_PORT);
 
     IPAddress local_ip = WiFi.localIP();
     Serial.print("IP address: ");
@@ -33,7 +30,7 @@ void setup() {
     Serial.print("avrdude -c arduino -p <device> -P net:");
     Serial.print(local_ip);
     Serial.print(":");
-    Serial.print(port);
+    Serial.print(TCP_PORT);
     Serial.println(" -t # or -U ...");
 
     // listen for avrdudes

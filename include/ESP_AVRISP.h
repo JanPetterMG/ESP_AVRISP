@@ -52,7 +52,7 @@ typedef struct {
 
 class ESP_AVRISP {
 public:
-    ESP_AVRISP(uint16_t port, uint8_t reset_pin, uint32_t spi_freq=AVRISP_SPI_FREQ, bool reset_state=false, bool reset_activehigh=false);
+    ESP_AVRISP(uint32_t spi_freq=AVRISP_SPI_FREQ, bool reset_state=false, bool reset_activehigh=false);
 
     void begin();
 
@@ -111,7 +111,6 @@ protected:
     WiFiServer _server;
     WiFiClient _client;
     AVRISPState_t _state;
-    uint8_t _reset_pin;
     bool _reset_state;
     bool _reset_activehigh;
 
