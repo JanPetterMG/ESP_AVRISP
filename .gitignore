@@ -1,2 +1,4 @@
 /.pio
 /.platformio
+/.venv
+/.vscode

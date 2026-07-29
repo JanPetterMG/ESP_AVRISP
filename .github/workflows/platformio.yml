@@ -1,8 +1,13 @@
-name: Dependabot Updates PlatformIO
+name: PlatformIO
 
 on:
-  schedule:
-    - cron: 3 2 1 * *
+  pull_request:
+    branches:
+      - master
+
+  push:
+    branches:
+      - master
 
   workflow_dispatch:
 
@@ -10,16 +15,84 @@ permissions:
   contents: read
 
 jobs:
-  platformio:
-    name: Update PlatformIO dependencies
-    runs-on: ubuntu-slim
-    permissions:
-      contents: write
-      pull-requests: write
+  context:
+    name: Context
+    runs-on: ubuntu-latest
+    outputs:
+      pio-environments: ${{ steps.platformio.outputs.environments }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: PlatformIO Dependency Updater
-        uses: VIPnytt/platformio-dependency-updater@2cfb0b4ff099f20e5e068253dc97fc8671c470c9 # v1.0.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version-file: pyproject.toml
+          python-version: 3.11
+          activate-environment: true
+
+      - name: Set up PlatformIO
+        run: uv sync --no-dev
+
+      - name: PlatformIO environments
+        id: platformio
+        run: echo "environments=$(pio project config --json-output | jq -c '[.[] | .[0] | select(startswith("env:")) | sub("^env:"; "")]')" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: context
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: ${{ fromJSON(needs.context.outputs.pio-environments) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Cache for PlatformIO
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: platformio-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('platformio.ini') }}
+          path: .platformio/.cache
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version-file: pyproject.toml
+          python-version: 3.11
+          activate-environment: true
+
+      - name: Set up PlatformIO
+        run: uv sync --no-dev
+
+      - name: PlatformIO build
+        run: pio run -e ${{ matrix.environment }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version-file: pyproject.toml
+          python-version: 3.11
+          activate-environment: true
+
+      - name: Set up PlatformIO
+        run: uv sync --no-dev
+
+      - name: PlatformIO lint
+        run: |
+          OUTPUT=$(pio project config --lint --json-output)
+          echo "$OUTPUT"
+          if [ "$OUTPUT" != "{'errors': [], 'warnings': []}" ]; then
+            exit 1
+          fi
